@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#f3efe6" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="个人应用" />
+    <title>个人应用</title>
+    <link rel="manifest" href="./manifest.webmanifest?v=10" />
+    <link rel="icon" href="./icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" sizes="180x180" href="./icon-180.png" />
+    <link rel="stylesheet" href="./styles.css?v=10" />
+    <script src="./app.js?v=10" defer></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="app-header">
+        <div>
+          <p class="today" id="today">正在读取日期</p>
+          <p class="current-time" id="current-time">--:--</p>
+        </div>
+        <div class="header-actions">
+          <p class="app-name">个人应用</p>
+          <button class="data-button" id="data-button" type="button" aria-label="数据导出与备份">⇩</button>
+        </div>
+      </header>
+
+      <main class="main-content">
+        <section class="page" id="daily-page" data-page="daily" hidden>
+          <div class="page-heading">
+            <p class="section-kicker" id="daily-date">今日填写</p>
+            <h1>每日</h1>
+          </div>
+
+          <form class="daily-form" id="daily-form">
+            <label class="daily-field" for="sleep-time">
+              <span class="daily-field-copy">
+                <strong>昨天入睡时间</strong>
+                <small>写入昨天的时间轴</small>
+              </span>
+              <input id="sleep-time" name="sleepTime" type="time" required />
+            </label>
+
+            <label class="daily-field" for="wake-time">
+              <span class="daily-field-copy">
+                <strong>今天起床时间</strong>
+                <small>写入今天的时间轴</small>
+              </span>
+              <input id="wake-time" name="wakeTime" type="time" required />
+            </label>
+
+            <label class="daily-field" for="steps">
+              <span class="daily-field-copy">
+                <strong>昨日步数</strong>
+                <small>固定显示在昨天 22:00</small>
+              </span>
+              <span class="steps-control">
+                <input id="steps" name="steps" type="number" min="0" max="200000" inputmode="numeric" required />
+                <span>步</span>
+              </span>
+            </label>
+
+            <div class="daily-field period-field" role="group" aria-labelledby="period-label">
+              <span class="daily-field-copy" id="period-label">
+                <strong>今天是否月经</strong>
+                <small>经期日期会在日历中标红</small>
+              </span>
+              <div class="segmented-control">
+                <label>
+                  <input type="radio" name="period" value="yes" required />
+                  <span>是</span>
+                </label>
+                <label>
+                  <input type="radio" name="period" value="no" required />
+                  <span>否</span>
+                </label>
+              </div>
+            </div>
+
+            <button class="daily-save-button" type="submit">保存今日填写</button>
+          </form>
+
+          <p class="save-status" id="daily-save-status" role="status" aria-live="polite"></p>
+        </section>
+
+        <section class="page" id="realtime-page" data-page="realtime">
+          <div class="page-heading">
+            <p class="section-kicker">现在发生了什么？</p>
+            <h1>实时</h1>
+          </div>
+
+          <form class="capture-form" id="capture-form">
+            <label class="sr-only" for="capture-input">记录内容</label>
+            <textarea
+              id="capture-input"
+              name="content"
+              rows="4"
+              maxlength="1000"
+              placeholder="写下此刻发生的事……"
+              required
+            ></textarea>
+            <div class="capture-actions">
+              <p class="capture-hint">发送后会自动记录当前时间</p>
+              <button class="send-button" type="submit" aria-label="发送记录">
+                <span>发送</span>
+                <span aria-hidden="true">↑</span>
+              </button>
+            </div>
+          </form>
+
+          <p class="save-status" id="save-status" role="status" aria-live="polite"></p>
+        </section>
+
+        <section class="page" id="timeline-page" data-page="timeline" hidden>
+          <section class="calendar-card" aria-label="日期选择">
+            <div class="calendar-header">
+              <button class="calendar-nav" id="previous-month" type="button" aria-label="上一个月">‹</button>
+              <h2 class="calendar-title" id="calendar-title">正在读取月份</h2>
+              <button class="calendar-nav" id="next-month" type="button" aria-label="下一个月">›</button>
+            </div>
+
+            <div class="calendar-weekdays" aria-hidden="true">
+              <span>一</span>
+              <span>二</span>
+              <span>三</span>
+              <span>四</span>
+              <span>五</span>
+              <span>六</span>
+              <span>日</span>
+            </div>
+            <div class="calendar-grid" id="calendar-grid"></div>
+          </section>
+
+          <div class="page-heading timeline-heading">
+            <p class="timeline-date-label" id="timeline-date">今天</p>
+            <div class="timeline-heading-actions">
+              <p class="record-count" id="record-count">0 条</p>
+              <button class="add-event-button" id="add-event-button" type="button">＋ 添加</button>
+            </div>
+          </div>
+
+          <ol class="timeline" id="timeline-list"></ol>
+
+          <div class="empty-card" id="timeline-empty">
+            <p class="empty-title">今天还没有记录</p>
+            <p>去“实时”页面写下第一件正在发生的事。</p>
+          </div>
+
+          <section class="daily-note-card" aria-labelledby="daily-note-title">
+            <div class="daily-note-heading">
+              <div>
+                <p class="section-kicker">这一天的补充</p>
+                <h2 id="daily-note-title">当日备注</h2>
+              </div>
+              <button class="clear-note-button" id="clear-note-button" type="button" hidden>清空</button>
+            </div>
+
+            <label class="sr-only" for="daily-note-input">当日备注内容</label>
+            <textarea
+              id="daily-note-input"
+              rows="6"
+              maxlength="20000"
+              placeholder="可以写下无法放进某个具体时间点的事情……"
+            ></textarea>
+
+            <div class="note-images-heading">
+              <div>
+                <strong>图片备注</strong>
+                <small>每一天最多 6 张，选择后自动缩小并保存在本机</small>
+              </div>
+              <button class="add-image-button" id="add-image-button" type="button">＋ 图片</button>
+              <input id="note-image-input" type="file" accept="image/*" multiple hidden />
+            </div>
+            <div class="note-image-grid" id="note-image-grid"></div>
+            <p class="note-save-status" id="note-save-status" role="status" aria-live="polite"></p>
+          </section>
+        </section>
+      </main>
+
+      <nav class="tab-bar" aria-label="主要页面">
+        <button class="tab-button" type="button" data-target="daily" aria-selected="false">
+          <span class="tab-icon" aria-hidden="true">□</span>
+          <span>每日</span>
+        </button>
+        <button class="tab-button is-active" type="button" data-target="realtime" aria-selected="true">
+          <span class="tab-icon tab-icon-live" aria-hidden="true"></span>
+          <span>实时</span>
+        </button>
+        <button class="tab-button" type="button" data-target="timeline" aria-selected="false">
+          <span class="tab-icon" aria-hidden="true">≡</span>
+          <span>时间轴</span>
+        </button>
+      </nav>
+    </div>
+
+    <dialog class="event-dialog" id="event-dialog" aria-labelledby="event-dialog-title">
+      <form class="event-form" id="event-form">
+        <div class="dialog-heading">
+          <div>
+            <p class="section-kicker" id="event-dialog-date">所选日期</p>
+            <h2 id="event-dialog-title">添加记录</h2>
+          </div>
+          <button class="dialog-close" id="event-dialog-close" type="button" aria-label="关闭">×</button>
+        </div>
+
+        <div id="editable-event-fields">
+          <label class="event-field" for="event-time">
+            <span>时间</span>
+            <input id="event-time" name="time" type="time" required />
+          </label>
+
+          <label class="event-field event-content-field" for="event-content">
+            <span>内容</span>
+            <textarea id="event-content" name="content" rows="5" maxlength="1000" required></textarea>
+          </label>
+        </div>
+
+        <div class="locked-event-message" id="locked-event-message" hidden>
+          <p>这条记录由“每日”页面生成。请回到“每日”修改，以免固定数据出现冲突。</p>
+        </div>
+
+        <p class="dialog-status" id="dialog-status" role="status" aria-live="polite"></p>
+
+        <div class="dialog-actions">
+          <button class="delete-event-button" id="delete-event-button" type="button" hidden>删除记录</button>
+          <button class="secondary-button" id="go-daily-button" type="button" hidden>去每日修改</button>
+          <button class="primary-button" id="save-event-button" type="submit">保存记录</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog class="data-dialog" id="data-dialog" aria-labelledby="data-dialog-title">
+      <section class="data-panel">
+        <div class="dialog-heading">
+          <div>
+            <p class="section-kicker">只在这台设备上处理</p>
+            <h2 id="data-dialog-title">数据与备份</h2>
+          </div>
+          <button class="dialog-close" id="data-dialog-close" type="button" aria-label="关闭数据与备份">×</button>
+        </div>
+
+        <div class="data-summary" id="data-summary"></div>
+
+        <div class="data-action-list">
+          <button class="data-action" id="export-json-button" type="button">
+            <span>
+              <strong>导出完整备份</strong>
+              <small>JSON，可用于以后恢复全部数据</small>
+            </span>
+            <span aria-hidden="true">JSON</span>
+          </button>
+
+          <button class="data-action" id="export-csv-button" type="button">
+            <span>
+              <strong>导出表格</strong>
+              <small>CSV，可用 Excel 或表格软件打开</small>
+            </span>
+            <span aria-hidden="true">CSV</span>
+          </button>
+
+          <button class="data-action" id="choose-backup-button" type="button">
+            <span>
+              <strong>选择备份文件</strong>
+              <small>检查 JSON 后再决定是否合并</small>
+            </span>
+            <span aria-hidden="true">导入</span>
+          </button>
+          <input id="backup-file-input" type="file" accept="application/json,.json" hidden />
+        </div>
+
+        <section class="import-preview" id="import-preview" hidden>
+          <h3>备份检查结果</h3>
+          <p id="import-preview-text"></p>
+          <p class="import-note">合并不会覆盖当前已有的数据。</p>
+          <button class="primary-button import-confirm-button" id="confirm-import-button" type="button">确认合并备份</button>
+        </section>
+
+        <p class="dialog-status data-status" id="data-status" role="status" aria-live="polite"></p>
+      </section>
+    </dialog>
+  </body>
+</html>

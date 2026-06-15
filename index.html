@@ -8,11 +8,11 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="个人应用" />
     <title>个人应用</title>
-    <link rel="manifest" href="./manifest.webmanifest?v=10" />
+    <link rel="manifest" href="./manifest.webmanifest?v=11" />
     <link rel="icon" href="./icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" sizes="180x180" href="./icon-180.png" />
-    <link rel="stylesheet" href="./styles.css?v=10" />
-    <script src="./app.js?v=10" defer></script>
+    <link rel="stylesheet" href="./styles.css?v=11" />
+    <script src="./app.js?v=11" defer></script>
   </head>
   <body>
     <div class="app-shell">
@@ -133,49 +133,67 @@
             <div class="calendar-grid" id="calendar-grid"></div>
           </section>
 
-          <div class="page-heading timeline-heading">
-            <p class="timeline-date-label" id="timeline-date">今天</p>
-            <div class="timeline-heading-actions">
-              <p class="record-count" id="record-count">0 条</p>
-              <button class="add-event-button" id="add-event-button" type="button">＋ 添加</button>
+          <div class="timeline-carousel" id="timeline-carousel">
+            <div class="timeline-view-track" id="timeline-view-track">
+              <section class="timeline-view-panel" id="timeline-view" aria-label="所选日期的时间线">
+                <div class="page-heading timeline-heading">
+                  <p class="timeline-date-label" id="timeline-date">今天</p>
+                  <div class="timeline-heading-actions">
+                    <p class="record-count" id="record-count">0 条</p>
+                    <button class="add-event-button" id="add-event-button" type="button">＋ 添加</button>
+                  </div>
+                </div>
+
+                <button class="timeline-view-switch note-view-button" id="show-note-button" type="button">
+                  <span>当日备注</span>
+                  <span aria-hidden="true">›</span>
+                </button>
+
+                <ol class="timeline" id="timeline-list"></ol>
+
+                <div class="empty-card" id="timeline-empty">
+                  <p class="empty-title">今天还没有记录</p>
+                  <p>去“实时”页面写下第一件正在发生的事。</p>
+                </div>
+              </section>
+
+              <section class="timeline-view-panel note-view-panel" id="note-view" aria-labelledby="daily-note-title" aria-hidden="true">
+                <button class="timeline-view-switch timeline-return-button" id="show-timeline-button" type="button">
+                  <span aria-hidden="true">‹</span>
+                  <span>返回时间线</span>
+                </button>
+
+                <section class="daily-note-card">
+                  <div class="daily-note-heading">
+                    <div>
+                      <p class="section-kicker" id="note-date-label">这一天的补充</p>
+                      <h2 id="daily-note-title">当日备注</h2>
+                    </div>
+                    <button class="clear-note-button" id="clear-note-button" type="button" hidden>清空</button>
+                  </div>
+
+                  <label class="sr-only" for="daily-note-input">当日备注内容</label>
+                  <textarea
+                    id="daily-note-input"
+                    rows="6"
+                    maxlength="20000"
+                    placeholder="可以写下无法放进某个具体时间点的事情……"
+                  ></textarea>
+
+                  <div class="note-images-heading">
+                    <div>
+                      <strong>图片备注</strong>
+                      <small>每一天最多 6 张，选择后自动缩小并保存在本机</small>
+                    </div>
+                    <button class="add-image-button" id="add-image-button" type="button">＋ 图片</button>
+                    <input id="note-image-input" type="file" accept="image/*" multiple hidden />
+                  </div>
+                  <div class="note-image-grid" id="note-image-grid"></div>
+                  <p class="note-save-status" id="note-save-status" role="status" aria-live="polite"></p>
+                </section>
+              </section>
             </div>
           </div>
-
-          <ol class="timeline" id="timeline-list"></ol>
-
-          <div class="empty-card" id="timeline-empty">
-            <p class="empty-title">今天还没有记录</p>
-            <p>去“实时”页面写下第一件正在发生的事。</p>
-          </div>
-
-          <section class="daily-note-card" aria-labelledby="daily-note-title">
-            <div class="daily-note-heading">
-              <div>
-                <p class="section-kicker">这一天的补充</p>
-                <h2 id="daily-note-title">当日备注</h2>
-              </div>
-              <button class="clear-note-button" id="clear-note-button" type="button" hidden>清空</button>
-            </div>
-
-            <label class="sr-only" for="daily-note-input">当日备注内容</label>
-            <textarea
-              id="daily-note-input"
-              rows="6"
-              maxlength="20000"
-              placeholder="可以写下无法放进某个具体时间点的事情……"
-            ></textarea>
-
-            <div class="note-images-heading">
-              <div>
-                <strong>图片备注</strong>
-                <small>每一天最多 6 张，选择后自动缩小并保存在本机</small>
-              </div>
-              <button class="add-image-button" id="add-image-button" type="button">＋ 图片</button>
-              <input id="note-image-input" type="file" accept="image/*" multiple hidden />
-            </div>
-            <div class="note-image-grid" id="note-image-grid"></div>
-            <p class="note-save-status" id="note-save-status" role="status" aria-live="polite"></p>
-          </section>
         </section>
       </main>
 

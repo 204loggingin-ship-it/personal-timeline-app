@@ -57,6 +57,13 @@ const dataStatus = document.querySelector("#data-status");
 const addImageButton = document.querySelector("#add-image-button");
 const noteImageInput = document.querySelector("#note-image-input");
 const noteImageGrid = document.querySelector("#note-image-grid");
+const noteDateLabel = document.querySelector("#note-date-label");
+const timelineCarousel = document.querySelector("#timeline-carousel");
+const timelineViewTrack = document.querySelector("#timeline-view-track");
+const timelineView = document.querySelector("#timeline-view");
+const noteView = document.querySelector("#note-view");
+const showNoteButton = document.querySelector("#show-note-button");
+const showTimelineButton = document.querySelector("#show-timeline-button");
 const tabButtons = [...document.querySelectorAll(".tab-button")];
 const pages = [...document.querySelectorAll(".page")];
 
@@ -70,6 +77,13 @@ let clearNoteConfirmationPending = false;
 let pendingImport = null;
 let imageRenderToken = 0;
 let activeImageUrls = [];
+let timelineSubview = "timeline";
+let swipeStartX = 0;
+let swipeStartY = 0;
+let swipePointerId = null;
+let suppressTimelineClick = false;
+let touchStartX = 0;
+let touchStartY = 0;
 
 const fullDateFormatter = new Intl.DateTimeFormat("zh-CN", {
   month: "long",
@@ -531,6 +545,9 @@ function resetClearNoteConfirmation() {
 function loadDailyNote() {
   const dateKey = getLocalDateKey(selectedDate);
   const note = readDailyNotes()[dateKey];
+  noteDateLabel.textContent = isSameLocalDate(selectedDate, today)
+    ? `今天 · ${timelineDateFormatter.format(selectedDate)}`
+    : timelineDateFormatter.format(selectedDate);
   dailyNoteInput.value = note?.content || "";
   clearNoteButton.hidden = !dailyNoteInput.value;
   noteSaveStatus.textContent = note?.content ? "已保存在本机" : "";
@@ -556,6 +573,7 @@ async function renderDailyImages() {
     empty.className = "note-image-empty";
     empty.textContent = "这一天还没有图片";
     noteImageGrid.append(empty);
+    updateTimelineCarouselHeight();
     return;
   }
 
@@ -604,6 +622,33 @@ async function renderDailyImages() {
 
     item.append(image, removeButton);
     noteImageGrid.append(item);
+  }
+
+  updateTimelineCarouselHeight();
+}
+
+function updateTimelineCarouselHeight() {
+  const activePanel = timelineSubview === "note" ? noteView : timelineView;
+  window.requestAnimationFrame(() => {
+    timelineCarousel.style.height = `${activePanel.scrollHeight}px`;
+  });
+}
+
+function setTimelineSubview(target, options = {}) {
+  const nextSubview = target === "note" ? "note" : "timeline";
+  const changed = timelineSubview !== nextSubview;
+  timelineSubview = nextSubview;
+  const showingNote = nextSubview === "note";
+
+  timelineViewTrack.classList.toggle("is-showing-note", showingNote);
+  timelineView.setAttribute("aria-hidden", String(showingNote));
+  noteView.setAttribute("aria-hidden", String(!showingNote));
+  timelineView.inert = showingNote;
+  noteView.inert = !showingNote;
+  updateTimelineCarouselHeight();
+
+  if (changed && options.scroll !== false) {
+    timelineCarousel.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 }
 
@@ -807,6 +852,7 @@ function renderCalendar() {
 
     button.addEventListener("click", () => {
       selectedDate = date;
+      setTimelineSubview("timeline", { scroll: false });
       renderCalendar();
       renderTimeline();
     });
@@ -884,6 +930,7 @@ function renderTimeline() {
   }
 
   loadDailyNote();
+  updateTimelineCarouselHeight();
 }
 
 function switchPage(target) {
@@ -922,6 +969,72 @@ function scheduleClockUpdate() {
 for (const button of tabButtons) {
   button.addEventListener("click", () => switchPage(button.dataset.target));
 }
+
+showNoteButton.addEventListener("click", () => setTimelineSubview("note"));
+showTimelineButton.addEventListener("click", () => setTimelineSubview("timeline"));
+
+function handleTimelineSwipe(deltaX, deltaY) {
+  if (Math.abs(deltaX) < 52 || Math.abs(deltaX) < Math.abs(deltaY) * 1.25) return false;
+
+  if (deltaX < 0 && timelineSubview === "timeline") {
+    suppressTimelineClick = true;
+    window.setTimeout(() => { suppressTimelineClick = false; }, 500);
+    setTimelineSubview("note");
+    return true;
+  }
+
+  if (deltaX > 0 && timelineSubview === "note") {
+    suppressTimelineClick = true;
+    window.setTimeout(() => { suppressTimelineClick = false; }, 500);
+    setTimelineSubview("timeline");
+    return true;
+  }
+
+  return false;
+}
+
+timelineCarousel.addEventListener("pointerdown", (event) => {
+  if (!event.isPrimary) return;
+  swipePointerId = event.pointerId;
+  swipeStartX = event.clientX;
+  swipeStartY = event.clientY;
+  timelineCarousel.setPointerCapture?.(event.pointerId);
+});
+
+timelineCarousel.addEventListener("pointerup", (event) => {
+  if (event.pointerId !== swipePointerId) return;
+  swipePointerId = null;
+  const deltaX = event.clientX - swipeStartX;
+  const deltaY = event.clientY - swipeStartY;
+  handleTimelineSwipe(deltaX, deltaY);
+});
+
+timelineCarousel.addEventListener("pointercancel", () => {
+  swipePointerId = null;
+});
+
+timelineCarousel.addEventListener("touchstart", (event) => {
+  if (event.touches.length !== 1) return;
+  touchStartX = event.touches[0].clientX;
+  touchStartY = event.touches[0].clientY;
+}, { passive: true });
+
+timelineCarousel.addEventListener("touchend", (event) => {
+  if (event.changedTouches.length !== 1) return;
+  handleTimelineSwipe(
+    event.changedTouches[0].clientX - touchStartX,
+    event.changedTouches[0].clientY - touchStartY,
+  );
+}, { passive: true });
+
+timelineCarousel.addEventListener("click", (event) => {
+  if (!suppressTimelineClick) return;
+  event.preventDefault();
+  event.stopPropagation();
+  suppressTimelineClick = false;
+}, true);
+
+window.addEventListener("resize", updateTimelineCarouselHeight);
 
 captureForm.addEventListener("submit", (event) => {
   event.preventDefault();
@@ -1305,11 +1418,12 @@ scheduleClockUpdate();
 loadDailyForm();
 renderCalendar();
 renderTimeline();
+setTimelineSubview("timeline", { scroll: false });
 switchPage("realtime");
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./sw.js?v=10").catch((error) => {
+    navigator.serviceWorker.register("./sw.js?v=11").catch((error) => {
       console.error("离线功能注册失败：", error);
     });
   });

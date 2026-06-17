@@ -1482,7 +1482,7 @@ switchPage("realtime");
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./sw.js?v=16").catch((error) => {
+    navigator.serviceWorker.register("./sw.js?v=18").catch((error) => {
       console.error("离线功能注册失败：", error);
     });
   });

@@ -1,10 +1,10 @@
-const CACHE_NAME = "personal-timeline-v15";
+const CACHE_NAME = "personal-timeline-v16";
 const APP_FILES = [
   "./",
   "./index.html",
-  "./styles.css?v=15",
-  "./app.js?v=15",
-  "./manifest.webmanifest?v=15",
+  "./styles.css?v=16",
+  "./app.js?v=16",
+  "./manifest.webmanifest?v=16",
   "./icon.svg",
   "./icon-180.png",
   "./icon-192.png",

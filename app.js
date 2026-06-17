@@ -692,6 +692,13 @@ function upsertDailyEvent(events, eventData) {
   return newEvent;
 }
 
+function removeDailyEvent(events, metric, dateKey) {
+  const eventIndex = events.findIndex(
+    (event) => event.source === "daily" && event.metric === metric && event.date === dateKey,
+  );
+  if (eventIndex >= 0) events.splice(eventIndex, 1);
+}
+
 function loadDailyForm() {
   const currentDate = new Date();
   const currentDateKey = getLocalDateKey(currentDate);
@@ -1097,55 +1104,81 @@ dailyForm.addEventListener("submit", (event) => {
   const formData = new FormData(dailyForm);
   const sleepTime = String(formData.get("sleepTime") || "");
   const wakeTime = String(formData.get("wakeTime") || "");
-  const steps = Number(formData.get("steps"));
-  const period = formData.get("period") === "yes";
+  const stepsText = String(formData.get("steps") || "").trim();
+  const periodValue = formData.get("period");
   const currentDate = new Date();
   const currentDateKey = getLocalDateKey(currentDate);
   const yesterdayKey = getLocalDateKey(addLocalDays(currentDate, -1));
   const events = readEvents();
+  let savedItems = 0;
 
-  upsertDailyEvent(events, {
-    metric: "sleep",
-    date: yesterdayKey,
-    time: sleepTime,
-    content: "入睡",
-    type: "sleep",
-    tag: "blue",
-    color: "blue",
-    value: sleepTime,
-  });
+  if (sleepTime) {
+    upsertDailyEvent(events, {
+      metric: "sleep",
+      date: yesterdayKey,
+      time: sleepTime,
+      content: "入睡",
+      type: "sleep",
+      tag: "blue",
+      color: "blue",
+      value: sleepTime,
+    });
+    savedItems += 1;
+  } else {
+    removeDailyEvent(events, "sleep", yesterdayKey);
+  }
 
-  upsertDailyEvent(events, {
-    metric: "wake",
-    date: currentDateKey,
-    time: wakeTime,
-    content: "起床",
-    type: "wake",
-    tag: "blue",
-    color: "blue",
-    value: wakeTime,
-  });
+  if (wakeTime) {
+    upsertDailyEvent(events, {
+      metric: "wake",
+      date: currentDateKey,
+      time: wakeTime,
+      content: "起床",
+      type: "wake",
+      tag: "blue",
+      color: "blue",
+      value: wakeTime,
+    });
+    savedItems += 1;
+  } else {
+    removeDailyEvent(events, "wake", currentDateKey);
+  }
 
-  upsertDailyEvent(events, {
-    metric: "steps",
-    date: yesterdayKey,
-    time: "22:00",
-    content: `${steps} 步`,
-    type: "steps",
-    tag: "orange",
-    color: "orange",
-    value: steps,
-  });
+  if (stepsText) {
+    const steps = Number(stepsText);
+    upsertDailyEvent(events, {
+      metric: "steps",
+      date: yesterdayKey,
+      time: "22:00",
+      content: `${steps} 步`,
+      type: "steps",
+      tag: "orange",
+      color: "orange",
+      value: steps,
+    });
+    savedItems += 1;
+  } else {
+    removeDailyEvent(events, "steps", yesterdayKey);
+  }
 
   writeEvents(events);
 
-  const statuses = readDailyStatuses();
-  statuses[currentDateKey] = {
-    period,
-    label: period ? "经期" : "非经期",
-    updatedAt: new Date().toISOString(),
-  };
-  writeDailyStatuses(statuses);
+  if (periodValue === "yes" || periodValue === "no") {
+    const period = periodValue === "yes";
+    const statuses = readDailyStatuses();
+    statuses[currentDateKey] = {
+      period,
+      label: period ? "经期" : "非经期",
+      updatedAt: new Date().toISOString(),
+    };
+    writeDailyStatuses(statuses);
+    savedItems += 1;
+  }
+
+  if (savedItems === 0) {
+    dailySaveStatus.textContent = "先填一项再保存";
+    return;
+  }
 
   dailySaveStatus.textContent = "今日填写已保存";
   renderCalendar();
@@ -1449,7 +1482,7 @@ switchPage("realtime");
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./sw.js?v=15").catch((error) => {
+    navigator.serviceWorker.register("./sw.js?v=16").catch((error) => {
       console.error("离线功能注册失败：", error);
     });
   });

@@ -8,11 +8,11 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="个人应用" />
     <title>个人应用</title>
-    <link rel="manifest" href="./manifest.webmanifest?v=15" />
+    <link rel="manifest" href="./manifest.webmanifest?v=16" />
     <link rel="icon" href="./icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" sizes="180x180" href="./icon-180.png" />
-    <link rel="stylesheet" href="./styles.css?v=15" />
-    <script src="./app.js?v=15" defer></script>
+    <link rel="stylesheet" href="./styles.css?v=16" />
+    <script src="./app.js?v=16" defer></script>
   </head>
   <body>
     <div class="app-shell">
@@ -28,14 +28,14 @@
               <span class="daily-field-copy">
                 <strong>昨天入睡时间</strong>
               </span>
-              <input id="sleep-time" name="sleepTime" type="time" required />
+              <input id="sleep-time" name="sleepTime" type="time" />
             </label>
 
             <label class="daily-field" for="wake-time">
               <span class="daily-field-copy">
                 <strong>今天起床时间</strong>
               </span>
-              <input id="wake-time" name="wakeTime" type="time" required />
+              <input id="wake-time" name="wakeTime" type="time" />
             </label>
 
             <label class="daily-field" for="steps">
@@ -43,7 +43,7 @@
                 <strong>昨日步数</strong>
               </span>
               <span class="steps-control">
-                <input id="steps" name="steps" type="number" min="0" max="200000" inputmode="numeric" required />
+                <input id="steps" name="steps" type="number" min="0" max="200000" inputmode="numeric" />
                 <span>步</span>
               </span>
             </label>
@@ -54,11 +54,11 @@
               </span>
               <div class="segmented-control">
                 <label>
-                  <input type="radio" name="period" value="yes" required />
+                  <input type="radio" name="period" value="yes" />
                   <span>是</span>
                 </label>
                 <label>
-                  <input type="radio" name="period" value="no" required />
+                  <input type="radio" name="period" value="no" />
                   <span>否</span>
                 </label>
               </div>

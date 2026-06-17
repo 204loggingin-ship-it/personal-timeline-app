@@ -1,19 +1,19 @@
 :root {
   color-scheme: light;
-  --bg: #fefffc;
-  --card: #f6faf4;
-  --card-strong: #eef5eb;
-  --ink: #203025;
-  --ink-soft: #2f352e;
-  --muted: #6f796b;
-  --muted-soft: #a7b0a2;
-  --line: #dde6da;
-  --line-strong: #cfdcc9;
-  --accent: #6f8a68;
-  --accent-soft: #e8f0e5;
-  --danger: #b95b5b;
-  --blue: #426f9c;
-  --orange: #bd6c2e;
+  --bg: #fbfbf6;
+  --card: #edf5e9;
+  --card-strong: #dfeada;
+  --ink: #17261c;
+  --ink-soft: #243528;
+  --muted: #596851;
+  --muted-soft: #7f8f78;
+  --line: #c4d3bd;
+  --line-strong: #93ad8d;
+  --accent: #4f7448;
+  --accent-soft: #d9e8d3;
+  --danger: #a94c4c;
+  --blue: #2f6f9f;
+  --orange: #a96025;
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC",
     "Microsoft YaHei", sans-serif;
   background: var(--bg);
@@ -58,7 +58,7 @@ textarea:focus {
 button:focus-visible,
 input:focus-visible,
 textarea:focus-visible {
-  outline: 2px solid rgba(111, 138, 104, 0.42);
+  outline: 2px solid rgba(79, 116, 72, 0.5);
   outline-offset: 2px;
 }
 
@@ -255,7 +255,7 @@ textarea:focus-visible {
   background: var(--bg);
   color: var(--accent);
   font-weight: 720;
-  box-shadow: 0 0.3rem 1rem rgba(47, 53, 46, 0.08);
+  box-shadow: 0 0.3rem 1rem rgba(36, 53, 40, 0.12);
 }
 
 .daily-save-button {
@@ -462,7 +462,7 @@ textarea:focus-visible {
 
 .calendar-day.is-period {
   color: var(--danger);
-  background: rgba(185, 91, 91, 0.09);
+  background: rgba(169, 76, 76, 0.15);
   font-weight: 760;
 }
 
@@ -531,9 +531,9 @@ textarea:focus-visible {
   height: 2.45rem;
   display: grid;
   place-items: center;
-  border: 1px solid var(--line);
+  border: 1px solid var(--line-strong);
   border-radius: 999px;
-  background: var(--bg);
+  background: var(--card-strong);
   color: var(--accent);
   font-size: 1.15rem;
   font-weight: 720;
@@ -546,9 +546,9 @@ textarea:focus-visible {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  border: 1px solid var(--line);
+  border: 1px solid var(--line-strong);
   border-radius: 999px;
-  background: var(--bg);
+  background: var(--card-strong);
   color: var(--accent);
   font-size: 0.82rem;
   font-weight: 720;
@@ -577,9 +577,9 @@ textarea:focus-visible {
   height: 2.35rem;
   display: grid;
   place-items: center;
-  border: 1px solid var(--line);
+  border: 1px solid var(--line-strong);
   border-radius: 50%;
-  background: var(--bg);
+  background: var(--card-strong);
   color: var(--accent);
   font-size: 1.15rem;
   line-height: 1;
@@ -678,7 +678,7 @@ textarea:focus-visible {
 }
 
 .timeline-item.is-blue .timeline-marker::before {
-  background: #4f82b2;
+  background: var(--blue);
 }
 
 .timeline-item.is-orange .timeline-time,
@@ -687,14 +687,14 @@ textarea:focus-visible {
 }
 
 .timeline-item.is-orange .timeline-marker::before {
-  background: #d67c35;
+  background: var(--orange);
 }
 
 .empty-card {
   padding: 1.15rem 1.25rem;
   border: 1px solid var(--line);
   border-radius: 1.1rem;
-  background: var(--bg);
+  background: var(--card);
 }
 
 #timeline-empty {
@@ -747,7 +747,7 @@ textarea:focus-visible {
 .capture-form:focus-within,
 .daily-field:focus-within {
   border-color: var(--line-strong);
-  box-shadow: 0 0 0 3px rgba(111, 138, 104, 0.08);
+  box-shadow: 0 0 0 3px rgba(79, 116, 72, 0.14);
 }
 
 .clear-note-button {
@@ -763,8 +763,8 @@ textarea:focus-visible {
 }
 
 .clear-note-button.is-confirming {
-  border-color: rgba(185, 91, 91, 0.24);
-  background: rgba(185, 91, 91, 0.08);
+  border-color: rgba(169, 76, 76, 0.32);
+  background: rgba(169, 76, 76, 0.12);
   color: var(--danger);
 }
 
@@ -799,9 +799,9 @@ textarea:focus-visible {
   height: 2.35rem;
   display: grid;
   place-items: center;
-  border: 1px solid var(--line);
+  border: 1px solid var(--line-strong);
   border-radius: 50%;
-  background: var(--bg);
+  background: var(--card-strong);
   color: var(--accent);
   font-size: 1.15rem;
   font-weight: 720;
@@ -883,7 +883,7 @@ textarea:focus-visible {
     max(0.8rem, env(safe-area-inset-left));
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  background: rgba(254, 255, 252, 0.94);
+  background: rgba(251, 251, 246, 0.96);
   border-top: 1px solid var(--line);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
@@ -909,7 +909,7 @@ textarea:focus-visible {
   font-weight: 760;
 }
 
-.tab-button.is-active:not([data-target="realtime"]) {
+.tab-button.is-active {
   border-color: var(--accent);
   background: var(--accent-soft);
 }
@@ -1030,7 +1030,7 @@ textarea:focus-visible {
 .locked-event-message {
   padding: 1rem;
   border-radius: 1rem;
-  background: rgba(66, 111, 156, 0.1);
+  background: rgba(47, 111, 159, 0.14);
   color: var(--blue);
   font-size: 0.88rem;
   line-height: 1.6;
@@ -1077,8 +1077,8 @@ textarea:focus-visible {
 
 .delete-event-button {
   margin-right: auto;
-  border: 1px solid rgba(185, 91, 91, 0.22);
-  background: rgba(185, 91, 91, 0.08);
+  border: 1px solid rgba(169, 76, 76, 0.32);
+  background: rgba(169, 76, 76, 0.12);
   color: var(--danger);
 }
 
@@ -1144,9 +1144,9 @@ textarea:focus-visible {
 .import-preview {
   margin-top: 1rem;
   padding: 1rem;
-  border: 1px solid rgba(66, 111, 156, 0.16);
+  border: 1px solid rgba(47, 111, 159, 0.24);
   border-radius: 1rem;
-  background: rgba(66, 111, 156, 0.08);
+  background: rgba(47, 111, 159, 0.12);
 }
 
 .import-preview h3,

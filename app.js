@@ -6,8 +6,6 @@ const IMAGE_DB_NAME = "personal-timeline-media-v1";
 const IMAGE_STORE_NAME = "images";
 const MAX_IMAGES_PER_DAY = 6;
 
-const todayElement = document.querySelector("#today");
-const currentTimeElement = document.querySelector("#current-time");
 const captureForm = document.querySelector("#capture-form");
 const captureInput = document.querySelector("#capture-input");
 const saveStatus = document.querySelector("#save-status");
@@ -59,6 +57,7 @@ const noteImageInput = document.querySelector("#note-image-input");
 const noteImageGrid = document.querySelector("#note-image-grid");
 const noteDateLabel = document.querySelector("#note-date-label");
 const timelineCarousel = document.querySelector("#timeline-carousel");
+const timelinePage = document.querySelector("#timeline-page");
 const timelineViewTrack = document.querySelector("#timeline-view-track");
 const timelineView = document.querySelector("#timeline-view");
 const noteView = document.querySelector("#note-view");
@@ -84,12 +83,7 @@ let swipePointerId = null;
 let suppressTimelineClick = false;
 let touchStartX = 0;
 let touchStartY = 0;
-
-const fullDateFormatter = new Intl.DateTimeFormat("zh-CN", {
-  month: "long",
-  day: "numeric",
-  weekday: "long",
-});
+let documentTouchSwipeActive = false;
 
 const timelineDateFormatter = new Intl.DateTimeFormat("zh-CN", {
   year: "numeric",
@@ -100,12 +94,6 @@ const timelineDateFormatter = new Intl.DateTimeFormat("zh-CN", {
 const calendarTitleFormatter = new Intl.DateTimeFormat("zh-CN", {
   year: "numeric",
   month: "long",
-});
-
-const headerTimeFormatter = new Intl.DateTimeFormat("zh-CN", {
-  hour: "2-digit",
-  minute: "2-digit",
-  hour12: false,
 });
 
 const eventTimeFormatter = new Intl.DateTimeFormat("zh-CN", {
@@ -119,6 +107,10 @@ function getLocalDateKey(date) {
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
+}
+
+function formatDisplayDate(date) {
+  return `${date.getFullYear()} 年 ${date.getMonth() + 1} 月 ${date.getDate()} 日`;
 }
 
 function readEvents() {
@@ -545,9 +537,8 @@ function resetClearNoteConfirmation() {
 function loadDailyNote() {
   const dateKey = getLocalDateKey(selectedDate);
   const note = readDailyNotes()[dateKey];
-  noteDateLabel.textContent = isSameLocalDate(selectedDate, today)
-    ? `今天 · ${timelineDateFormatter.format(selectedDate)}`
-    : timelineDateFormatter.format(selectedDate);
+  noteDateLabel.textContent = formatDisplayDate(selectedDate);
+  noteDateLabel.dateTime = dateKey;
   dailyNoteInput.value = note?.content || "";
   clearNoteButton.hidden = !dailyNoteInput.value;
   noteSaveStatus.textContent = note?.content ? "已保存在本机" : "";
@@ -569,10 +560,6 @@ async function renderDailyImages() {
   addImageButton.disabled = images.length >= MAX_IMAGES_PER_DAY;
 
   if (images.length === 0) {
-    const empty = document.createElement("p");
-    empty.className = "note-image-empty";
-    empty.textContent = "这一天还没有图片";
-    noteImageGrid.append(empty);
     updateTimelineCarouselHeight();
     return;
   }
@@ -641,6 +628,7 @@ function setTimelineSubview(target, options = {}) {
   const showingNote = nextSubview === "note";
 
   timelineViewTrack.classList.toggle("is-showing-note", showingNote);
+  timelinePage.classList.toggle("is-note-view", showingNote);
   timelineView.setAttribute("aria-hidden", String(showingNote));
   noteView.setAttribute("aria-hidden", String(!showingNote));
   timelineView.inert = showingNote;
@@ -714,7 +702,8 @@ function loadDailyForm() {
   const wakeEvent = findDailyEvent(events, "wake", currentDateKey);
   const stepsEvent = findDailyEvent(events, "steps", yesterdayKey);
 
-  dailyDate.textContent = `${timelineDateFormatter.format(currentDate)} · 今日填写`;
+  dailyDate.textContent = formatDisplayDate(currentDate);
+  dailyDate.dateTime = currentDateKey;
   sleepTimeInput.value = sleepEvent?.time || "";
   wakeTimeInput.value = wakeEvent?.time || "";
   stepsInput.value = stepsEvent?.value ?? "";
@@ -871,8 +860,8 @@ function renderTimeline() {
     });
 
   timelineDate.textContent = isSameLocalDate(selectedDate, today)
-    ? `今天 · ${timelineDateFormatter.format(selectedDate)}`
-    : timelineDateFormatter.format(selectedDate);
+    ? `今天 · ${formatDisplayDate(selectedDate)}`
+    : formatDisplayDate(selectedDate);
   recordCount.textContent = `${selectedEvents.length} 条`;
   timelineList.replaceChildren();
   timelineEmpty.hidden = selectedEvents.length > 0;
@@ -882,9 +871,8 @@ function renderTimeline() {
   emptyTitle.textContent = isSameLocalDate(selectedDate, today)
     ? "今天还没有记录"
     : "这一天还没有记录";
-  emptyDescription.textContent = isSameLocalDate(selectedDate, today)
-    ? "去“实时”页面写下第一件正在发生的事。"
-    : "选择其他日期，或者回到今天查看实时记录。";
+  emptyDescription.textContent = "";
+  emptyDescription.hidden = true;
 
   for (const event of selectedEvents) {
     const item = document.createElement("li");
@@ -954,14 +942,14 @@ function switchPage(target) {
   }
 }
 
-function updateHeaderClock() {
+function updateDeviceDate() {
   const now = new Date();
-  todayElement.textContent = fullDateFormatter.format(now);
-  currentTimeElement.textContent = headerTimeFormatter.format(now);
+  dailyDate.textContent = formatDisplayDate(now);
+  dailyDate.dateTime = getLocalDateKey(now);
 }
 
 function scheduleClockUpdate() {
-  updateHeaderClock();
+  updateDeviceDate();
   const millisecondsUntilNextMinute = 60000 - (Date.now() % 60000);
   window.setTimeout(scheduleClockUpdate, millisecondsUntilNextMinute);
 }
@@ -993,13 +981,51 @@ function handleTimelineSwipe(deltaX, deltaY) {
   return false;
 }
 
+function shouldTrackTimelineSwipe(target) {
+  return !timelinePage.hidden && !target?.closest?.(".tab-bar, dialog");
+}
+
+document.addEventListener("pointerdown", (event) => {
+  if (!event.isPrimary || !shouldTrackTimelineSwipe(event.target)) return;
+  swipePointerId = event.pointerId;
+  swipeStartX = event.clientX;
+  swipeStartY = event.clientY;
+}, { capture: true });
+
+document.addEventListener("pointerup", (event) => {
+  if (event.pointerId !== swipePointerId) return;
+  swipePointerId = null;
+  handleTimelineSwipe(event.clientX - swipeStartX, event.clientY - swipeStartY);
+}, { capture: true });
+
+document.addEventListener("pointercancel", () => {
+  swipePointerId = null;
+}, { capture: true });
+
+document.addEventListener("touchstart", (event) => {
+  documentTouchSwipeActive = false;
+  if (event.touches.length !== 1 || !shouldTrackTimelineSwipe(event.target)) return;
+  documentTouchSwipeActive = true;
+  touchStartX = event.touches[0].clientX;
+  touchStartY = event.touches[0].clientY;
+}, { passive: true, capture: true });
+
+document.addEventListener("touchend", (event) => {
+  if (!documentTouchSwipeActive || event.changedTouches.length !== 1 || timelinePage.hidden) return;
+  documentTouchSwipeActive = false;
+  handleTimelineSwipe(
+    event.changedTouches[0].clientX - touchStartX,
+    event.changedTouches[0].clientY - touchStartY,
+  );
+}, { passive: true, capture: true });
+
 timelineCarousel.addEventListener("pointerdown", (event) => {
   if (!event.isPrimary) return;
   swipePointerId = event.pointerId;
   swipeStartX = event.clientX;
   swipeStartY = event.clientY;
   timelineCarousel.setPointerCapture?.(event.pointerId);
-});
+}, { capture: true });
 
 timelineCarousel.addEventListener("pointerup", (event) => {
   if (event.pointerId !== swipePointerId) return;
@@ -1007,17 +1033,17 @@ timelineCarousel.addEventListener("pointerup", (event) => {
   const deltaX = event.clientX - swipeStartX;
   const deltaY = event.clientY - swipeStartY;
   handleTimelineSwipe(deltaX, deltaY);
-});
+}, { capture: true });
 
 timelineCarousel.addEventListener("pointercancel", () => {
   swipePointerId = null;
-});
+}, { capture: true });
 
 timelineCarousel.addEventListener("touchstart", (event) => {
   if (event.touches.length !== 1) return;
   touchStartX = event.touches[0].clientX;
   touchStartY = event.touches[0].clientY;
-}, { passive: true });
+}, { passive: true, capture: true });
 
 timelineCarousel.addEventListener("touchend", (event) => {
   if (event.changedTouches.length !== 1) return;
@@ -1025,7 +1051,7 @@ timelineCarousel.addEventListener("touchend", (event) => {
     event.changedTouches[0].clientX - touchStartX,
     event.changedTouches[0].clientY - touchStartY,
   );
-}, { passive: true });
+}, { passive: true, capture: true });
 
 timelineCarousel.addEventListener("click", (event) => {
   if (!suppressTimelineClick) return;
@@ -1423,7 +1449,7 @@ switchPage("realtime");
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./sw.js?v=11").catch((error) => {
+    navigator.serviceWorker.register("./sw.js?v=15").catch((error) => {
       console.error("离线功能注册失败：", error);
     });
   });

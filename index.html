@@ -3,42 +3,30 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#f3efe6" />
+    <meta name="theme-color" content="#fefffc" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="个人应用" />
     <title>个人应用</title>
-    <link rel="manifest" href="./manifest.webmanifest?v=11" />
+    <link rel="manifest" href="./manifest.webmanifest?v=15" />
     <link rel="icon" href="./icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" sizes="180x180" href="./icon-180.png" />
-    <link rel="stylesheet" href="./styles.css?v=11" />
-    <script src="./app.js?v=11" defer></script>
+    <link rel="stylesheet" href="./styles.css?v=15" />
+    <script src="./app.js?v=15" defer></script>
   </head>
   <body>
     <div class="app-shell">
-      <header class="app-header">
-        <div>
-          <p class="today" id="today">正在读取日期</p>
-          <p class="current-time" id="current-time">--:--</p>
-        </div>
-        <div class="header-actions">
-          <p class="app-name">个人应用</p>
-          <button class="data-button" id="data-button" type="button" aria-label="数据导出与备份">⇩</button>
-        </div>
-      </header>
-
       <main class="main-content">
         <section class="page" id="daily-page" data-page="daily" hidden>
-          <div class="page-heading">
-            <p class="section-kicker" id="daily-date">今日填写</p>
-            <h1>每日</h1>
+          <div class="daily-now">
+            <h1>现在是：</h1>
+            <time id="daily-date" datetime="">正在读取日期</time>
           </div>
 
           <form class="daily-form" id="daily-form">
             <label class="daily-field" for="sleep-time">
               <span class="daily-field-copy">
                 <strong>昨天入睡时间</strong>
-                <small>写入昨天的时间轴</small>
               </span>
               <input id="sleep-time" name="sleepTime" type="time" required />
             </label>
@@ -46,7 +34,6 @@
             <label class="daily-field" for="wake-time">
               <span class="daily-field-copy">
                 <strong>今天起床时间</strong>
-                <small>写入今天的时间轴</small>
               </span>
               <input id="wake-time" name="wakeTime" type="time" required />
             </label>
@@ -54,7 +41,6 @@
             <label class="daily-field" for="steps">
               <span class="daily-field-copy">
                 <strong>昨日步数</strong>
-                <small>固定显示在昨天 22:00</small>
               </span>
               <span class="steps-control">
                 <input id="steps" name="steps" type="number" min="0" max="200000" inputmode="numeric" required />
@@ -65,7 +51,6 @@
             <div class="daily-field period-field" role="group" aria-labelledby="period-label">
               <span class="daily-field-copy" id="period-label">
                 <strong>今天是否月经</strong>
-                <small>经期日期会在日历中标红</small>
               </span>
               <div class="segmented-control">
                 <label>
@@ -79,7 +64,7 @@
               </div>
             </div>
 
-            <button class="daily-save-button" type="submit">保存今日填写</button>
+            <button class="daily-save-button" type="submit">保存</button>
           </form>
 
           <p class="save-status" id="daily-save-status" role="status" aria-live="polite"></p>
@@ -87,7 +72,6 @@
 
         <section class="page" id="realtime-page" data-page="realtime">
           <div class="page-heading">
-            <p class="section-kicker">现在发生了什么？</p>
             <h1>实时</h1>
           </div>
 
@@ -102,7 +86,6 @@
               required
             ></textarea>
             <div class="capture-actions">
-              <p class="capture-hint">发送后会自动记录当前时间</p>
               <button class="send-button" type="submit" aria-label="发送记录">
                 <span>发送</span>
                 <span aria-hidden="true">↑</span>
@@ -140,12 +123,12 @@
                   <p class="timeline-date-label" id="timeline-date">今天</p>
                   <div class="timeline-heading-actions">
                     <p class="record-count" id="record-count">0 条</p>
-                    <button class="add-event-button" id="add-event-button" type="button">＋ 添加</button>
+                    <button class="add-event-button" id="add-event-button" type="button" aria-label="添加记录">＋</button>
                   </div>
                 </div>
 
-                <button class="timeline-view-switch note-view-button" id="show-note-button" type="button">
-                  <span>当日备注</span>
+                <button class="timeline-view-switch note-view-button sr-only" id="show-note-button" type="button">
+                  <span>打开当日备注</span>
                   <span aria-hidden="true">›</span>
                 </button>
 
@@ -157,21 +140,16 @@
                 </div>
               </section>
 
-              <section class="timeline-view-panel note-view-panel" id="note-view" aria-labelledby="daily-note-title" aria-hidden="true">
-                <button class="timeline-view-switch timeline-return-button" id="show-timeline-button" type="button">
-                  <span aria-hidden="true">‹</span>
-                  <span>返回时间线</span>
-                </button>
+              <section class="timeline-view-panel note-view-panel" id="note-view" aria-labelledby="note-date-label" aria-hidden="true">
+                <div class="note-page-heading">
+                  <time id="note-date-label" datetime="">正在读取日期</time>
+                  <button class="timeline-view-switch timeline-return-button" id="show-timeline-button" type="button">
+                    <span aria-hidden="true">‹</span>
+                    <span>返回</span>
+                  </button>
+                </div>
 
                 <section class="daily-note-card">
-                  <div class="daily-note-heading">
-                    <div>
-                      <p class="section-kicker" id="note-date-label">这一天的补充</p>
-                      <h2 id="daily-note-title">当日备注</h2>
-                    </div>
-                    <button class="clear-note-button" id="clear-note-button" type="button" hidden>清空</button>
-                  </div>
-
                   <label class="sr-only" for="daily-note-input">当日备注内容</label>
                   <textarea
                     id="daily-note-input"
@@ -179,13 +157,14 @@
                     maxlength="20000"
                     placeholder="可以写下无法放进某个具体时间点的事情……"
                   ></textarea>
+                  <button class="clear-note-button" id="clear-note-button" type="button" hidden>清空</button>
 
                   <div class="note-images-heading">
                     <div>
                       <strong>图片备注</strong>
-                      <small>每一天最多 6 张，选择后自动缩小并保存在本机</small>
+                      <small>最多 6 张</small>
                     </div>
-                    <button class="add-image-button" id="add-image-button" type="button">＋ 图片</button>
+                    <button class="add-image-button" id="add-image-button" type="button" aria-label="添加图片备注">＋</button>
                     <input id="note-image-input" type="file" accept="image/*" multiple hidden />
                   </div>
                   <div class="note-image-grid" id="note-image-grid"></div>
@@ -194,6 +173,7 @@
               </section>
             </div>
           </div>
+          <button class="data-button timeline-data-button" id="data-button" type="button" aria-label="导出数据">↓</button>
         </section>
       </main>
 
